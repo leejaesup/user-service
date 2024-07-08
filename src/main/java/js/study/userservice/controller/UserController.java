@@ -1,6 +1,7 @@
 package js.study.userservice.controller;
 
 import js.study.userservice.dto.UserDto;
+import js.study.userservice.jpa.UserEntity;
 import js.study.userservice.service.UserService;
 import js.study.userservice.vo.Greeting;
 import js.study.userservice.vo.RequestUser;
@@ -13,8 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
-@RequestMapping("/")
+@RequestMapping("/user-service")
 public class UserController {
 
     private Environment env;
@@ -29,11 +33,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("health_check")
+    @GetMapping("/health_check")
     public String status() {
-        return "사용중인 User Service";
+        return String.format("사용중인 User Service Port : %s", env.getProperty("local.server.port"));
     }
-    @GetMapping("welcome")
+    @GetMapping("/welcome")
     public String welcome() {
 //        return env.getProperty("greeting.message");
         return greeting.getMessage();
@@ -51,6 +55,26 @@ public class UserController {
 
 //        return "Create user method is called!";
         return ResponseEntity.status(HttpStatus.CREATED).body(responseUser);
+    }
 
+    @GetMapping("/users")
+    public ResponseEntity<List<ResponseUser>> getUsers() {
+        Iterable<UserEntity> userList = userService.getUserByAll();
+
+        List<ResponseUser> responseUsers = new ArrayList<>();
+        userList.forEach(vo -> {
+            responseUsers.add(new ModelMapper().map(vo, ResponseUser.class));
+        });
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseUsers);
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<ResponseUser> getUsers(@PathVariable("userId") String userId) {
+        UserDto userDto = userService.getUserByUserId(userId);
+
+        ResponseUser responseUser = new ModelMapper().map(userDto, ResponseUser.class);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseUser);
     }
 }
