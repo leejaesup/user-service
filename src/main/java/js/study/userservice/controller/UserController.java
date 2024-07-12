@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user-service")
+//@RequestMapping("/user-service") //Gateway에 Route 정보 추가
+@RequestMapping("/")
 public class UserController {
 
     private Environment env;
@@ -35,7 +36,7 @@ public class UserController {
 
     @GetMapping("/health_check")
     public String status() {
-        return String.format("사용중인 User Service Port : %s", env.getProperty("local.server.port"));
+        return String.format("[User Service] 사용중인 User Service Port : %s", env.getProperty("local.server.port"));
     }
     @GetMapping("/welcome")
     public String welcome() {
@@ -61,12 +62,12 @@ public class UserController {
     public ResponseEntity<List<ResponseUser>> getUsers() {
         Iterable<UserEntity> userList = userService.getUserByAll();
 
-        List<ResponseUser> responseUsers = new ArrayList<>();
+        List<ResponseUser> result = new ArrayList<>();
         userList.forEach(vo -> {
-            responseUsers.add(new ModelMapper().map(vo, ResponseUser.class));
+            result.add(new ModelMapper().map(vo, ResponseUser.class));
         });
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseUsers);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @GetMapping("/users/{userId}")
@@ -77,4 +78,7 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK).body(responseUser);
     }
+
+    //TODO: 유저 수정
+    //TODO: 유저 삭제
 }
